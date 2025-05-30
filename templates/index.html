@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VulnScanLite</title>
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: 0 auto; padding: 20px; }
+        textarea { width: 100%; height: 200px; margin: 10px 0; }
+        button { padding: 10px 15px; background: #4CAF50; color: white; border: none; }
+        .vulnerable { color: red; }
+        .safe { color: green; }
+    </style>
+</head>
+<body>
+    <h1>🔍 VulnScanLite</h1>
+    <p>Paste HTML/JS code to scan for OWASP Top 10 vulnerabilities:</p>
+    
+    <textarea id="code" placeholder="<script>alert('test');</script>"></textarea>
+    <button onclick="scan()">Scan Code</button>
+    
+    <div id="results"></div>
+
+    <script>
+        function scan() {
+            const code = document.getElementById('code').value;
+            fetch('/scan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `code=${encodeURIComponent(code)}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                let output = '<h3>Results:</h3>';
+                if (Object.keys(data).length === 0) {
+                    output += '<p class="safe">✅ No vulnerabilities found!</p>';
+                } else {
+                    for (const [vuln, patterns] of Object.entries(data)) {
+                        output += `<p class="vulnerable">⚠️ <strong>${vuln.replace('_', ' ')}</strong>: ${patterns.join(', ')}</p>`;
+                    }
+                }
+                document.getElementById('results').innerHTML = output;
+            });
+        }
+    </script>
+</body>
+</html>
